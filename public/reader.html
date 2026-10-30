@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đang đọc · Readaholic</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/reader.css">
+</head>
+<body class="reader" data-theme="light">
+  <header class="r-top">
+    <a class="btn btn-ghost btn-sm" href="/" title="Về kệ sách">← Kệ sách</a>
+    <div class="r-title" id="title">Đang mở sách…</div>
+    <button class="btn btn-ghost btn-sm" id="toc-btn" type="button" hidden>Mục lục</button>
+    <button class="btn btn-ghost btn-sm" id="settings-btn" type="button" aria-expanded="false">Aa</button>
+  </header>
+
+  <div class="r-settings" id="settings" hidden>
+    <div class="r-setting" id="font-setting">
+      <span>Cỡ chữ</span>
+      <button class="btn btn-sm" id="font-dec" type="button">A−</button>
+      <span id="font-size">100%</span>
+      <button class="btn btn-sm" id="font-inc" type="button">A+</button>
+    </div>
+    <div class="r-setting" id="zoom-setting" hidden>
+      <span>Thu phóng</span>
+      <button class="btn btn-sm" id="zoom-dec" type="button">−</button>
+      <span id="zoom-level">Vừa khung</span>
+      <button class="btn btn-sm" id="zoom-inc" type="button">+</button>
+      <button class="btn btn-sm" id="zoom-fit" type="button">Vừa khung</button>
+    </div>
+    <div class="r-setting">
+      <span>Nền</span>
+      <button class="btn btn-sm theme-swatch" data-theme-value="light" type="button">Sáng</button>
+      <button class="btn btn-sm theme-swatch" data-theme-value="sepia" type="button">Giấy cũ</button>
+      <button class="btn btn-sm theme-swatch" data-theme-value="dark" type="button">Tối</button>
+    </div>
+  </div>
+
+  <nav class="r-toc" id="toc" hidden aria-label="Mục lục"></nav>
+
+  <div class="r-stage">
+    <button class="r-nav r-prev" id="prev" type="button" aria-label="Trang trước">‹</button>
+    <div class="r-content" id="viewer"></div>
+    <button class="r-nav r-next" id="next" type="button" aria-label="Trang sau">›</button>
+    <div class="r-loading" id="loading">Đang tải sách…</div>
+  </div>
+
+  <footer class="r-bottom">
+    <div class="r-position">
+      <span id="position"></span>
+      <form id="goto-form" hidden><input id="goto-input" type="number" min="1" aria-label="Đi tới trang"></form>
+    </div>
+    <div class="progress r-progress"><div id="progress-bar"></div></div>
+    <span id="percent">0%</span>
+    <span class="r-saved" id="saved"></span>
+  </footer>
+
+  <script src="/vendor/jszip/jszip.min.js"></script>
+  <script src="/vendor/epubjs/epub.min.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/formats.js"></script>
+  <script src="/js/reader.js"></script>
+</body>
+</html>

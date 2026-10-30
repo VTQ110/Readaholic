@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kệ sách · Readaholic</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Read<span>aholic</span></a>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="upload-btn" type="button">+ Thêm sách</button>
+    <div class="user-menu">
+      <span class="who" id="who"></span>
+      <a class="btn btn-ghost btn-sm" href="/admin" id="admin-link" hidden>Quản trị</a>
+      <button class="btn btn-ghost btn-sm" id="password-btn" type="button">Đổi mật khẩu</button>
+      <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">Đăng xuất</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <input class="search" id="q" type="search" placeholder="Tìm theo tựa sách hoặc tác giả…" aria-label="Tìm kiếm">
+      <select id="genre" aria-label="Thể loại"><option value="">Tất cả thể loại</option></select>
+      <select id="author" aria-label="Tác giả"><option value="">Tất cả tác giả</option></select>
+      <select id="status" aria-label="Trạng thái đọc">
+        <option value="">Mọi trạng thái</option>
+        <option value="unread">Chưa đọc</option>
+        <option value="reading">Đang đọc</option>
+        <option value="finished">Đã đọc xong</option>
+      </select>
+      <select id="sort" aria-label="Sắp xếp">
+        <option value="added">Mới thêm</option>
+        <option value="recent">Đọc gần đây</option>
+        <option value="title">Tựa sách A–Z</option>
+        <option value="author">Tác giả A–Z</option>
+        <option value="progress">Tiến độ</option>
+      </select>
+    </div>
+
+    <section id="continue-section" hidden>
+      <h2 class="section-title">Đang đọc dở</h2>
+      <div class="shelf continue" id="continue"></div>
+    </section>
+
+    <h2 class="section-title" id="shelf-title">Kệ sách</h2>
+    <div class="summary"><span id="count"></span><button class="btn btn-ghost btn-sm" id="clear-filters" hidden>Xoá bộ lọc</button></div>
+    <div class="shelf" id="shelf"></div>
+    <div class="empty" id="empty" hidden></div>
+  </main>
+
+  <dialog id="book-dialog">
+    <form id="book-form" method="dialog">
+      <h2 id="book-dialog-title">Thêm sách</h2>
+      <div class="field" id="file-field">
+        <label for="f-file">File sách (EPUB, PDF, TXT, MD, CBZ)</label>
+        <input id="f-file" name="file" type="file" accept=".epub,.pdf,.txt,.md,.cbz">
+        <span class="hint" id="file-hint"></span>
+      </div>
+      <div class="form-grid">
+        <div>
+          <div class="cover-preview" id="cover-preview">Chưa có ảnh bìa</div>
+          <label class="btn btn-sm" style="width:100%;margin-top:.5rem">
+            Đổi bìa<input id="f-cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          </label>
+        </div>
+        <div>
+          <div class="field"><label for="f-title">Tựa sách</label><input id="f-title" name="title" required maxlength="300"></div>
+          <div class="field"><label for="f-author">Tác giả</label><input id="f-author" name="author" list="author-list" maxlength="300"></div>
+          <div class="field">
+            <label for="f-genre">Thể loại</label>
+            <input id="f-genre" name="genre" list="genre-list" placeholder="VD: Tiểu thuyết, Trinh thám">
+            <span class="hint">Nhiều thể loại cách nhau bằng dấu phẩy</span>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label for="f-desc">Giới thiệu</label><textarea id="f-desc" name="description" maxlength="5000"></textarea></div>
+      <p class="error" id="book-error"></p>
+      <div class="dialog-actions">
+        <button class="btn" type="button" data-close>Huỷ</button>
+        <button class="btn btn-primary" type="submit" id="book-submit">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="detail-dialog">
+    <form method="dialog">
+      <div class="form-grid">
+        <div class="cover-preview" id="d-cover"></div>
+        <div>
+          <h2 id="d-title" style="margin-bottom:.25rem"></h2>
+          <div class="muted" id="d-author"></div>
+          <div class="genres" id="d-genres" style="display:flex;gap:.25rem;flex-wrap:wrap;margin:.5rem 0"></div>
+          <div class="hint" id="d-meta"></div>
+          <div id="d-progress" style="margin-top:.75rem"></div>
+        </div>
+      </div>
+      <p class="detail-desc" id="d-desc"></p>
+      <div class="dialog-actions" style="flex-wrap:wrap">
+        <button class="btn btn-danger" type="button" id="d-delete">Xoá sách</button>
+        <button class="btn" type="button" id="d-reset">Đọc lại từ đầu</button>
+        <button class="btn" type="button" id="d-edit">Sửa thông tin</button>
+        <a class="btn" id="d-download">Tải về</a>
+        <a class="btn btn-primary" id="d-read">Đọc</a>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="password-dialog">
+    <form id="password-form" method="dialog">
+      <h2>Đổi mật khẩu</h2>
+      <div class="field"><label for="p-current">Mật khẩu hiện tại</label><input id="p-current" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="p-new">Mật khẩu mới</label><input id="p-new" type="password" autocomplete="new-password" minlength="6" required></div>
+      <p class="error" id="password-error"></p>
+      <div class="dialog-actions">
+        <button class="btn" type="button" data-close>Huỷ</button>
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <datalist id="genre-list"></datalist>
+  <datalist id="author-list"></datalist>
+
+  <script src="/vendor/jszip/jszip.min.js"></script>
+  <script src="/vendor/epubjs/epub.min.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/formats.js"></script>
+  <script src="/js/library.js"></script>
+</body>
+</html>

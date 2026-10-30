@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản trị · Readaholic</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Read<span>aholic</span></a>
+    <div class="spacer"></div>
+    <div class="user-menu">
+      <a class="btn btn-ghost btn-sm" href="/">← Kệ sách</a>
+      <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">Đăng xuất</button>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Cấp tài khoản mới</h2>
+      <p class="muted">Gửi tên đăng nhập và mật khẩu cho bạn bè. Họ có thể tự đổi mật khẩu sau khi đăng nhập.</p>
+      <form class="inline-form" id="create-form">
+        <div class="field"><label for="c-username">Tên đăng nhập</label><input id="c-username" required pattern="[a-zA-Z0-9_.\-]{3,32}" autocomplete="off"></div>
+        <div class="field"><label for="c-name">Tên hiển thị</label><input id="c-name" autocomplete="off"></div>
+        <div class="field">
+          <label for="c-password">Mật khẩu</label>
+          <div style="display:flex;gap:.3rem"><input id="c-password" required minlength="6" autocomplete="new-password"><button class="btn btn-sm" type="button" id="gen-btn" title="Tạo mật khẩu ngẫu nhiên">🎲</button></div>
+        </div>
+        <div class="field"><label for="c-role">Vai trò</label>
+          <select id="c-role"><option value="member">Thành viên</option><option value="admin">Quản trị viên</option></select>
+        </div>
+        <div class="field"><button class="btn btn-primary" type="submit">Tạo</button></div>
+      </form>
+      <p class="error" id="create-error"></p>
+    </section>
+
+    <section class="card">
+      <h2>Thành viên</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tên đăng nhập</th><th>Tên hiển thị</th><th>Vai trò</th><th>Sách đã góp</th><th>Ngày tạo</th><th></th></tr></thead>
+          <tbody id="users"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

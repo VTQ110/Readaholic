@@ -1,0 +1,31 @@
+{
+  "name": "readaholic",
+  "version": "1.0.0",
+  "description": "Thư viện ebook cá nhân dùng chung với bạn bè",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "create-user": "node scripts/create-user.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VTQ110/Readaholic.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/VTQ110/Readaholic/issues"
+  },
+  "homepage": "https://github.com/VTQ110/Readaholic#readme",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "epubjs": "^0.3.93",
+    "express": "^5.3.0",
+    "jszip": "^3.10.2",
+    "multer": "^2.5.0",
+    "pdfjs-dist": "^4.10.38"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

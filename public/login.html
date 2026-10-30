@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập · Readaholic</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" id="login-form">
+      <h1>Read<span>aholic</span></h1>
+      <p>Thư viện sách chung của nhóm. Đăng nhập bằng tài khoản đã được cấp.</p>
+      <div class="field">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Đăng nhập</button>
+      <p class="error" id="error"></p>
+    </form>
+  </div>
+  <script src="/js/common.js"></script>
+  <script>
+    const form = document.getElementById('login-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button');
+      const error = document.getElementById('error');
+      btn.disabled = true;
+      error.textContent = '';
+      try {
+        await api('/api/login', { method: 'POST', body: { username: form.username.value, password: form.password.value } });
+        location.href = '/';
+      } catch (err) {
+        error.textContent = err.message;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
