@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Đang đọc · Readaholic</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/reader.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reader.css">
 </head>
 <body class="reader" data-theme="light">
   <header class="r-top">
-    <a class="btn btn-ghost btn-sm" href="/" title="Về kệ sách">← Kệ sách</a>
+    <a class="btn btn-ghost btn-sm" href="./" id="back-link" title="Về kệ sách">← Kệ sách</a>
     <div class="r-title" id="title">Đang mở sách…</div>
     <button class="btn btn-ghost btn-sm" id="toc-btn" type="button" hidden>Mục lục</button>
     <button class="btn btn-ghost btn-sm" id="settings-btn" type="button" aria-expanded="false">Aa</button>
@@ -57,10 +57,13 @@
     <span class="r-saved" id="saved"></span>
   </footer>
 
-  <script src="/vendor/jszip/jszip.min.js"></script>
-  <script src="/vendor/epubjs/epub.min.js"></script>
-  <script src="/js/common.js"></script>
-  <script src="/js/formats.js"></script>
-  <script src="/js/reader.js"></script>
+  <script src="vendor/jszip/jszip.min.js"></script>
+  <script src="vendor/epubjs/epub.min.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/formats.js"></script>
+  <script src="js/backend.js"></script>
+  <script src="js/reader.js"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ function randomPassword() {
 
 async function update(user, body, message) {
   try {
-    await api(`/api/users/${user.id}`, { method: 'PUT', body });
+    await backend.updateUser(user.id, body);
     toast(message);
     load();
   } catch (err) {
@@ -41,7 +41,7 @@ function row(user) {
       isMe ? null : el('button', { class: 'btn btn-sm btn-danger', type: 'button', text: 'Xoá', onclick: async () => {
         if (!confirm(`Xoá tài khoản "${user.username}"? Sách họ đã góp vẫn được giữ lại.`)) return;
         try {
-          await api(`/api/users/${user.id}`, { method: 'DELETE' });
+          await backend.deleteUser(user.id);
           toast('Đã xoá tài khoản');
           load();
         } catch (err) {
@@ -53,19 +53,19 @@ function row(user) {
 }
 
 async function load() {
-  const users = await api('/api/users');
+  const users = await backend.listUsers();
   $('users').replaceChildren(...users.map(row));
 }
 
 $('gen-btn').addEventListener('click', () => ($('c-password').value = randomPassword()));
-$('logout-btn').addEventListener('click', logout);
+$('logout-btn').addEventListener('click', () => backend.logout());
 $('create-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('create-error').textContent = '';
   const body = { username: $('c-username').value.trim(), displayName: $('c-name').value, password: $('c-password').value, role: $('c-role').value };
   try {
-    await api('/api/users', { method: 'POST', body });
-    alert(`Đã tạo tài khoản. Gửi thông tin này cho bạn của bạn:\n\nĐịa chỉ: ${location.origin}\nTên đăng nhập: ${body.username}\nMật khẩu: ${body.password}`);
+    await backend.createUser(body);
+    alert(`Đã tạo tài khoản. Gửi thông tin này cho bạn của bạn:\n\nĐịa chỉ: ${new URL('./', location.href).href}\nTên đăng nhập: ${body.username}\nMật khẩu: ${body.password}`);
     e.target.reset();
     load();
   } catch (err) {
@@ -74,6 +74,7 @@ $('create-form').addEventListener('submit', async (e) => {
 });
 
 (async () => {
-  me = await api('/api/me');
+  me = await backend.requireLogin();
+  if (me.role !== 'admin') return location.replace('./');
   load();
 })();

@@ -1,8 +1,9 @@
 // Helpers shared by the uploader (metadata/cover extraction) and the reader.
 let pdfjsPromise;
 function loadPdfjs() {
-  pdfjsPromise ??= import('/vendor/pdfjs/pdf.min.mjs').then((lib) => {
-    lib.GlobalWorkerOptions.workerSrc = '/vendor/pdfjs/pdf.worker.min.mjs';
+  // Resolve against the page so the app also works under a sub-path (GitHub Pages).
+  pdfjsPromise ??= import(new URL('vendor/pdfjs/pdf.min.mjs', document.baseURI).href).then((lib) => {
+    lib.GlobalWorkerOptions.workerSrc = new URL('vendor/pdfjs/pdf.worker.min.mjs', document.baseURI).href;
     return lib;
   });
   return pdfjsPromise;

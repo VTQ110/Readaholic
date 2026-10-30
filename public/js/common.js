@@ -1,20 +1,4 @@
 // Shared helpers for all pages.
-async function api(path, options = {}) {
-  const opts = { credentials: 'same-origin', ...options };
-  if (opts.body && !(opts.body instanceof FormData) && typeof opts.body !== 'string') {
-    opts.headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-    opts.body = JSON.stringify(opts.body);
-  }
-  const res = await fetch(path, opts);
-  if (res.status === 401 && !path.endsWith('/login')) {
-    location.href = '/login';
-    throw new Error('Phiên đăng nhập đã hết hạn');
-  }
-  const data = res.headers.get('content-type')?.includes('application/json') ? await res.json() : null;
-  if (!res.ok) throw new Error(data?.error || `Lỗi ${res.status}`);
-  return data;
-}
-
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -42,20 +26,14 @@ function toast(message) {
   toastTimer = setTimeout(() => (node.hidden = true), 2800);
 }
 
-async function logout() {
-  await api('/api/logout', { method: 'POST' }).catch(() => {});
-  location.href = '/login';
-}
-
 function formatSize(bytes) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function formatDate(sqlDate) {
-  if (!sqlDate) return '';
-  const d = new Date(sqlDate.replace(' ', 'T') + 'Z');
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+function formatDate(isoDate) {
+  if (!isoDate) return '';
+  return new Date(isoDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function splitGenres(genre) {

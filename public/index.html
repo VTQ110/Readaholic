@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kệ sách · Readaholic</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">Read<span>aholic</span></a>
+    <a class="brand" href="./">Read<span>aholic</span></a>
     <div class="spacer"></div>
     <button class="btn btn-primary" id="upload-btn" type="button">+ Thêm sách</button>
     <div class="user-menu">
       <span class="who" id="who"></span>
-      <a class="btn btn-ghost btn-sm" href="/admin" id="admin-link" hidden>Quản trị</a>
+      <a class="btn btn-ghost btn-sm" href="admin.html" id="admin-link" hidden>Quản trị</a>
       <button class="btn btn-ghost btn-sm" id="password-btn" type="button">Đổi mật khẩu</button>
       <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">Đăng xuất</button>
     </div>
@@ -102,7 +102,7 @@
         <button class="btn btn-danger" type="button" id="d-delete">Xoá sách</button>
         <button class="btn" type="button" id="d-reset">Đọc lại từ đầu</button>
         <button class="btn" type="button" id="d-edit">Sửa thông tin</button>
-        <a class="btn" id="d-download">Tải về</a>
+        <button class="btn" type="button" id="d-download">Tải về</button>
         <a class="btn btn-primary" id="d-read">Đọc</a>
       </div>
     </form>
@@ -124,10 +124,13 @@
   <datalist id="genre-list"></datalist>
   <datalist id="author-list"></datalist>
 
-  <script src="/vendor/jszip/jszip.min.js"></script>
-  <script src="/vendor/epubjs/epub.min.js"></script>
-  <script src="/js/common.js"></script>
-  <script src="/js/formats.js"></script>
-  <script src="/js/library.js"></script>
+  <script src="vendor/jszip/jszip.min.js"></script>
+  <script src="vendor/epubjs/epub.min.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/formats.js"></script>
+  <script src="js/backend.js"></script>
+  <script src="js/library.js"></script>
 </body>
 </html>

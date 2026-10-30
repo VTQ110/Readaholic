@@ -17,9 +17,11 @@ function progressLabel(book) {
   return `${Math.floor(book.percent)}%`;
 }
 
+const readUrl = (book) => `reader.html?id=${book.id}`;
+
 function coverNode(book) {
-  if (book.hasCover) {
-    return el('img', { src: `/api/books/${book.id}/cover`, alt: `Bìa sách ${book.title}`, loading: 'lazy' });
+  if (book.coverUrl) {
+    return el('img', { src: book.coverUrl, alt: `Bìa sách ${book.title}`, loading: 'lazy' });
   }
   return el(
     'div',
@@ -34,7 +36,7 @@ function bookCard(book) {
   return el(
     'article',
     { class: 'book' },
-    el('a', { class: 'cover-link', href: `/read/${book.id}`, title: `Đọc "${book.title}"` }, coverNode(book)),
+    el('a', { class: 'cover-link', href: readUrl(book), title: `Đọc "${book.title}"` }, coverNode(book)),
     el('span', { class: 'format-badge', text: book.format }),
     el('button', { class: 'menu-btn', type: 'button', title: 'Chi tiết', 'aria-label': `Chi tiết ${book.title}`, onclick: () => openDetail(book) }, '⋯'),
     el('div', { class: 'progress', title: progressLabel(book) }, el('div', { style: { width: `${book.percent}%` } })),
@@ -44,7 +46,7 @@ function bookCard(book) {
       el('span', { text: progressLabel(book) }),
       book.lastReadAt && statusOf(book) !== 'finished' && book.positionLabel ? el('span', { text: book.positionLabel }) : null
     ),
-    el('a', { class: 'title', href: `/read/${book.id}`, style: { color: 'inherit', textDecoration: 'none' }, text: book.title }),
+    el('a', { class: 'title', href: readUrl(book), style: { color: 'inherit', textDecoration: 'none' }, text: book.title }),
     book.author ? el('button', { class: 'author chip', style: { background: 'none', padding: 0, textAlign: 'left' }, title: 'Lọc theo tác giả', onclick: () => setFilter('author', book.author), text: book.author }) : null,
     genres.length ? el('div', { class: 'genres' }, genres.map((g) => el('button', { class: 'chip', type: 'button', title: 'Lọc theo thể loại', onclick: () => setFilter('genre', g), text: g }))) : null
   );
@@ -124,7 +126,7 @@ function render() {
 }
 
 async function loadBooks() {
-  state.books = await api('/api/books');
+  state.books = await backend.listBooks();
   refreshOptions();
   render();
 }
@@ -144,16 +146,22 @@ function openDetail(book) {
       book.lastReadAt ? el('span', { text: `Lần cuối: ${formatDate(book.lastReadAt)}` }) : null)
   );
   $('d-desc').textContent = book.description;
-  $('d-read').href = `/read/${book.id}`;
+  $('d-read').href = readUrl(book);
   $('d-read').textContent = book.lastReadAt ? 'Đọc tiếp' : 'Đọc';
-  $('d-download').href = `/api/books/${book.id}/file?download=1`;
+  $('d-download').onclick = async () => {
+    try {
+      location.href = await backend.fileUrl(book, { download: true });
+    } catch (err) {
+      alert(err.message);
+    }
+  };
   $('d-edit').hidden = !book.canEdit;
   $('d-delete').hidden = !book.canEdit;
   $('d-reset').hidden = !book.lastReadAt;
   $('d-edit').onclick = () => { d.close(); openBookForm(book); };
   $('d-reset').onclick = async () => {
     if (!confirm('Xoá tiến độ đọc của bạn với cuốn sách này?')) return;
-    await api(`/api/books/${book.id}/progress`, { method: 'DELETE' });
+    await backend.resetProgress(book.id);
     d.close();
     toast('Đã đặt lại tiến độ');
     loadBooks();
@@ -161,7 +169,7 @@ function openDetail(book) {
   $('d-delete').onclick = async () => {
     if (!confirm(`Xoá vĩnh viễn "${book.title}" khỏi thư viện? Mọi người sẽ không đọc được nữa.`)) return;
     try {
-      await api(`/api/books/${book.id}`, { method: 'DELETE' });
+      await backend.deleteBook(book);
       d.close();
       toast('Đã xoá sách');
       loadBooks();
@@ -200,7 +208,7 @@ function openBookForm(book = null) {
     $('f-author').value = book.author;
     $('f-genre').value = book.genre;
     $('f-desc').value = book.description;
-    setCoverPreview(book.hasCover ? `/api/books/${book.id}/cover` : null);
+    setCoverPreview(book.coverUrl);
   } else {
     setCoverPreview(null);
   }
@@ -230,59 +238,46 @@ $('f-cover').addEventListener('change', async (e) => {
   if (file) setCoverBlob(await shrinkImage(file));
 });
 
-$('book-form').addEventListener('submit', (e) => {
+$('book-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const fd = new FormData();
-  fd.append('title', $('f-title').value);
-  fd.append('author', $('f-author').value);
-  fd.append('genre', $('f-genre').value);
-  fd.append('description', $('f-desc').value);
-  if (state.coverBlob) {
-    const ext = { 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[state.coverBlob.type] || 'jpg';
-    fd.append('cover', state.coverBlob, `cover.${ext}`);
-  }
   const editing = state.editing;
-  if (!editing) {
-    const file = $('f-file').files[0];
-    if (!file) return;
-    fd.append('file', file);
-  }
-
+  const fields = {
+    title: $('f-title').value,
+    author: $('f-author').value,
+    genre: $('f-genre').value,
+    description: $('f-desc').value,
+    cover: state.coverBlob,
+  };
   const submit = $('book-submit');
+  const label = submit.textContent;
   submit.disabled = true;
-  // XHR instead of fetch so large uploads can show progress.
-  const xhr = new XMLHttpRequest();
-  xhr.open(editing ? 'PUT' : 'POST', editing ? `/api/books/${editing.id}` : '/api/books');
-  xhr.upload.onprogress = (ev) => {
-    if (ev.lengthComputable) submit.textContent = `Đang tải ${Math.round((ev.loaded / ev.total) * 100)}%`;
-  };
-  xhr.onload = () => {
-    let data = {};
-    try { data = JSON.parse(xhr.responseText); } catch {}
-    if (xhr.status >= 200 && xhr.status < 300) {
-      $('book-dialog').close();
-      toast(editing ? 'Đã lưu thay đổi' : 'Đã thêm sách vào thư viện');
-      loadBooks();
+  $('book-error').textContent = '';
+  try {
+    if (editing) {
+      submit.textContent = 'Đang lưu…';
+      await backend.updateBook(editing, fields);
     } else {
-      if (xhr.status === 401) location.href = '/login';
-      $('book-error').textContent = data.error || `Lỗi ${xhr.status}`;
-      submit.disabled = false;
-      submit.textContent = editing ? 'Lưu' : 'Tải lên';
+      const file = $('f-file').files[0];
+      if (!file) throw new Error('Vui lòng chọn file sách');
+      if (!formatOf(file.name)) throw new Error('Định dạng chưa hỗ trợ. Hỗ trợ: EPUB, PDF, TXT, MD, CBZ');
+      await backend.addBook({ ...fields, file }, (ratio) => (submit.textContent = `Đang tải ${Math.round(ratio * 100)}%`));
     }
-  };
-  xhr.onerror = () => {
-    $('book-error').textContent = 'Mất kết nối tới máy chủ';
+    $('book-dialog').close();
+    toast(editing ? 'Đã lưu thay đổi' : 'Đã thêm sách vào thư viện');
+    loadBooks();
+  } catch (err) {
+    $('book-error').textContent = err.message;
+  } finally {
     submit.disabled = false;
-    submit.textContent = editing ? 'Lưu' : 'Tải lên';
-  };
-  xhr.send(fd);
+    submit.textContent = label;
+  }
 });
 
 // ---------- Password ----------
 $('password-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
-    await api('/api/me/password', { method: 'POST', body: { currentPassword: $('p-current').value, newPassword: $('p-new').value } });
+    await backend.changePassword($('p-current').value, $('p-new').value);
     $('password-dialog').close();
     toast('Đã đổi mật khẩu');
   } catch (err) {
@@ -293,7 +288,7 @@ $('password-form').addEventListener('submit', async (e) => {
 // ---------- Wiring ----------
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
 $('upload-btn').addEventListener('click', () => openBookForm());
-$('logout-btn').addEventListener('click', logout);
+$('logout-btn').addEventListener('click', () => backend.logout());
 $('password-btn').addEventListener('click', () => {
   $('password-form').reset();
   $('password-error').textContent = '';
@@ -307,7 +302,7 @@ $('clear-filters').addEventListener('click', () => {
 });
 
 (async function init() {
-  state.me = await api('/api/me');
+  state.me = await backend.requireLogin();
   $('who').textContent = `Xin chào, ${state.me.displayName}`;
   $('admin-link').hidden = state.me.role !== 'admin';
   await loadBooks();

@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quản trị · Readaholic</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">Read<span>aholic</span></a>
+    <a class="brand" href="./">Read<span>aholic</span></a>
     <div class="spacer"></div>
     <div class="user-menu">
-      <a class="btn btn-ghost btn-sm" href="/">← Kệ sách</a>
+      <a class="btn btn-ghost btn-sm" href="./">← Kệ sách</a>
       <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">Đăng xuất</button>
     </div>
   </header>
@@ -46,7 +46,10 @@
     </section>
   </main>
 
-  <script src="/js/common.js"></script>
-  <script src="/js/admin.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/backend.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>

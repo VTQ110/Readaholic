@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Đăng nhập · Readaholic</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="login-wrap">
@@ -24,8 +24,12 @@
       <p class="error" id="error"></p>
     </form>
   </div>
-  <script src="/js/common.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/backend.js"></script>
   <script>
+    backend.hasSession().then((ok) => ok && location.replace('./'));
     const form = document.getElementById('login-form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -34,8 +38,8 @@
       btn.disabled = true;
       error.textContent = '';
       try {
-        await api('/api/login', { method: 'POST', body: { username: form.username.value, password: form.password.value } });
-        location.href = '/';
+        await backend.login(form.username.value, form.password.value);
+        location.replace('./');
       } catch (err) {
         error.textContent = err.message;
         btn.disabled = false;

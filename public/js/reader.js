@@ -1,5 +1,5 @@
 const $ = (id) => document.getElementById(id);
-const bookId = Number(location.pathname.split('/').pop());
+const bookId = Number(new URLSearchParams(location.search).get('id'));
 const viewer = $('viewer');
 const SETTINGS_KEY = 'readaholic.reader';
 
@@ -14,6 +14,7 @@ try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '
 if (!THEMES[settings.theme]) settings.theme = 'light';
 
 let engine = null;
+let fileUrl = null; // signed Supabase Storage URL of the book file
 
 // ---------- Progress saving ----------
 const progress = { current: null, lastSaved: null, timer: null };
@@ -34,14 +35,7 @@ async function saveProgress(keepalive = false) {
   if (!data || JSON.stringify(data) === progress.lastSaved) return;
   const body = JSON.stringify(data);
   try {
-    const res = await fetch(`/api/books/${bookId}/progress`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      keepalive,
-      credentials: 'same-origin',
-    });
-    if (!res.ok) throw new Error();
+    await backend.saveProgress(bookId, data, keepalive);
     progress.lastSaved = body;
     $('saved').textContent = 'Đã lưu ✓';
   } catch {
@@ -50,13 +44,20 @@ async function saveProgress(keepalive = false) {
 }
 
 addEventListener('pagehide', () => saveProgress(true));
+// Save before leaving through the back button instead of relying only on pagehide.
+$('back-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const { href } = e.currentTarget;
+  await Promise.race([saveProgress(), new Promise((r) => setTimeout(r, 1500))]);
+  location.href = href;
+});
 document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && saveProgress(true));
 
 // ---------- Engines ----------
 // Each engine exposes: next(), prev(), goTo(pageNumber)?, total(), setFontSize(pct)?, setTheme(name)?, zoom?(dir)
 
 async function epubEngine(saved) {
-  const buffer = await (await fetch(`/api/books/${bookId}/file`)).arrayBuffer();
+  const buffer = await (await fetch(fileUrl)).arrayBuffer();
   const book = ePub(buffer);
   const rendition = book.renderTo(viewer, {
     width: '100%', height: '100%', flow: 'paginated', spread: 'auto', allowScriptedContent: false,
@@ -146,7 +147,7 @@ async function epubEngine(saved) {
 
 async function pdfEngine(saved) {
   const pdfjs = await loadPdfjs();
-  const pdf = await pdfjs.getDocument({ url: `/api/books/${bookId}/file` }).promise;
+  const pdf = await pdfjs.getDocument({ url: fileUrl }).promise;
   const scroll = el('div', { class: 'r-scroll' });
   const pageWrap = el('div', { class: 'r-page' });
   const canvas = el('canvas');
@@ -202,7 +203,7 @@ async function pdfEngine(saved) {
 }
 
 async function cbzEngine(saved) {
-  const zip = await JSZip.loadAsync(await (await fetch(`/api/books/${bookId}/file`)).arrayBuffer());
+  const zip = await JSZip.loadAsync(await (await fetch(fileUrl)).arrayBuffer());
   const pages = cbzPages(zip);
   if (!pages.length) throw new Error('File CBZ không có ảnh nào');
   const scroll = el('div', { class: 'r-scroll' });
@@ -257,7 +258,7 @@ function decodeText(buffer) {
 }
 
 async function txtEngine(saved) {
-  const text = decodeText(await (await fetch(`/api/books/${bookId}/file`)).arrayBuffer());
+  const text = decodeText(await (await fetch(fileUrl)).arrayBuffer());
   const scroll = el('div', { class: 'r-scroll', tabindex: '-1' });
   const body = el('div', { class: 'r-text' });
   body.textContent = text.replace(/^﻿/, '');
@@ -361,7 +362,10 @@ $('goto-input').addEventListener('blur', () => { $('goto-form').hidden = true; $
   applyTheme();
   $('font-size').textContent = `${settings.fontSize}%`;
   try {
-    const [book, saved] = await Promise.all([api(`/api/books/${bookId}`), api(`/api/books/${bookId}/progress`)]);
+    await backend.requireLogin();
+    const book = await backend.getBook(bookId);
+    const saved = { location: book.location, percent: book.percent };
+    fileUrl = await backend.fileUrl(book);
     document.title = `${book.title} · Readaholic`;
     $('title').textContent = book.author ? `${book.title} — ${book.author}` : book.title;
     const isImage = book.format === 'pdf' || book.format === 'cbz';
